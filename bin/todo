@@ -11,7 +11,7 @@ end
 
 include GLI::App
 
-program_desc 'Describe your application here'
+program_desc 'a simple command line todo app'
 
 version Todo::VERSION
 
@@ -25,20 +25,26 @@ DEFAULT_TODO_FILE = 'todo.txt' #need to work out how to set home path
 
 # use this default flag code to set location of todo list file 
 
-desc 'Path to to-do list file path'
+desc 'Path to the todo file'
 default_value DEFAULT_TODO_FILE
-arg_name 'The name of the argument - is this needed?'
+arg_name 'todo_file'
 flag [:f,:filename] 
 
-desc 'Adds new task(s)'
-arg_name 'Describe arguments to new here'
+desc 'Create a new task in the task list'
+long_desc "
+A task has a name and a priority. By default, new
+tasks have the lowest possible priority, though this can be overridden.
+"
+arg_name 'task_name'
 command :new do |c|
-  c.desc 'The -f switch is used to put the task first'
+  c.desc 'put the new task first in the list'
+  c.arg_name 'priority'
   c.switch :f
 
-  c.desc 'Set the task position'
+  c.desc 'set the priority of the new task, 1 being the highest'
+  c.arg_name 'priority'
   c.default_value false
-  c.flag :priority
+  c.flag [:priority]
   c.action do |global_options,options,args|
 
     todo_file = global_options[:f] ? global_options[:f] : DEFAULT_TODO_FILE
@@ -89,8 +95,8 @@ command :new do |c|
   end
 end
 
-desc 'List all tasks in the todo list'
-arg_name 'Apply "-s name" to sort the list by name'
+desc 'List tasks'
+arg_name 'query if needed as no arguments'
 command :list do |c|
   c.flag :s
   c.action do |global_options,options,args|
@@ -115,8 +121,10 @@ command :list do |c|
   end
 end
 
-desc 'Specify task as completed'
-arg_name 'Describe arguments to done here'
+desc 'Complete a task'
+long_desc "
+Record tasks as completed"
+arg_name 'task number, e.g. "1"'
 command :done do |c|
   c.action do |global_options,options,args|
 
