@@ -96,9 +96,18 @@ command :new do |c|
 end
 
 desc 'List tasks'
-arg_name 'query if needed as no arguments'
+
 command :list do |c|
+
+  c.desc 'Sort list items alphabetically'
+  c.arg_name 'sort'
   c.flag :s
+
+  c.desc 'Format of the output'
+  c.arg_name 'csv|pretty'
+  c.default_value 'pretty'
+  c.flag :format
+
   c.action do |global_options,options,args|
 
     todo_file = global_options[:f] ? global_options[:f] : DEFAULT_TODO_FILE
@@ -108,15 +117,28 @@ command :list do |c|
       todos = todos.sort { |a, b| a <=> b }
     end
 
-    counter = 1
+    index = 1
     todos.each do |todo|
+
       name,created,completed = todo.chomp.split(/,/)
-      printf("%3d - %s\n",counter,name)
-      printf("    Created: %s\n",created)
-      unless completed.nil?
-        printf("    Completed : %s\n",completed)
+
+      if options[:format] == 'pretty'
+
+        # use the pretty-print format
+
+        printf("%2d - %s\n",index,name)
+        printf("     %-10s %s\n","Created:",created)
+        printf("     %-10s %s\n","Completed:",completed) if completed
+      
+      elsif options[:format] == 'csv'
+
+        # use the csv format
+
+        complete_flag = completed ? "C" : "U"
+        printf("%d,%s,%s,%s,%s\n",index,name,complete_flag,created,completed)
+
       end
-      counter += 1
+        index += 1
     end
   end
 end
