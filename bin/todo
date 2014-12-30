@@ -120,12 +120,19 @@ command [:list,:ls] do |c|
   c.arg_name 'sort'
   c.flag :s
 
-  c.desc 'Format of the output'
+  c.desc 'Format of the output (pretty for TTY, csv otherwise)'
   c.arg_name 'csv|pretty'
-  c.default_value 'pretty'
   c.flag :format
 
   c.action do |global_options,options,args|
+
+    if options[:format].nil?
+      if STDOUT.tty?
+        options[:format] == 'pretty'
+      else
+        options[:format] == 'csv'
+      end
+    end
 
     todo_file = global_options[:f] ? global_options[:f] : DEFAULT_TODO_FILE
 
