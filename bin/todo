@@ -31,29 +31,39 @@ arg_name 'todo_file'
 flag [:f,:filename] 
 
 desc 'Create a new task in the task list'
-long_desc "
+long_desc %(
 A task has a name and a priority. By default, new
 tasks have the lowest possible priority, though this can be overridden.
-"
-arg_name 'task_name'
+If task_name is omitted, read tasks from the standard input.
+)
+arg_name '[task_name...]'
+
 command :new do |c|
   c.desc 'put the new task first in the list'
-  c.arg_name 'priority'
   c.switch :f
 
   c.desc 'set the priority of the new task, 1 being the highest'
   c.arg_name 'priority'
   c.default_value false
   c.flag [:priority]
-  c.action do |global_options,options,args|
+
+  c.action do |global_options,options,task_names|
 
     todo_file = global_options[:f] ? global_options[:f] : DEFAULT_TODO_FILE
 
-    args.each do |new_task| 
+    if task_names.empty?
+      puts "Reading new tasks from stdin..."
+      task_names = STDIN.readlines.map { |a| a.chomp }
+    end
 
-      puts "--priority - #{options[:priority]}"
+    puts task_names.count
+
+    task_count = 0
+
+    task_names.each do |new_task| 
 
       File.open(todo_file, 'a+') do |file|
+
         # adds task to top of list if -f provided or at end otherwise
         if options[:f] == true
           content = file.readlines
@@ -89,7 +99,14 @@ command :new do |c|
           file.puts "#{new_task},#{Time.now}"
           puts "Task added - #{new_task}."
         end
+
+        task_count += 1
+
       end
+    end
+
+    if task_count == 0
+      raise "You must provide tasks on the command-line or via standard input"
     end
 
   end
@@ -97,7 +114,7 @@ end
 
 desc 'List tasks'
 
-command :list do |c|
+command [:list,:ls] do |c|
 
   c.desc 'Sort list items alphabetically'
   c.arg_name 'sort'
@@ -172,10 +189,6 @@ command :done do |c|
 
     `mv todo.txt.new todo.txt`
 
-
-
-    puts "Global:"
-    puts "-f - #{todo_file}"
   end
 end
 
